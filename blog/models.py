@@ -4,6 +4,7 @@ from django.db import models
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.contrib.auth.models import User
+from taggit.managers import TaggableManager
 
 
 class PublishedManager(models.Manager):
@@ -26,6 +27,7 @@ class Post(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     objects = models.Manager()  # default manager
     published = PublishedManager()  # o primeiro custom manager
+    tags = TaggableManager()
 
     class Meta:
         ordering = ('-publish',)
@@ -41,3 +43,17 @@ class Post(models.Model):
                              self.slug])
 
 
+class Comment(models.Model):
+    post = models.ForeignKey(Post, related_name='comments')
+    name = models.CharField(max_length=80)
+    email = models.EmailField()
+    body = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('created',)
+
+    def __str__(self):
+        return 'Comentado por {} em {}'.format(self.name, self.post)
